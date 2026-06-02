@@ -174,10 +174,9 @@ def canonical_edge_motif_signature(G: nx.Graph, mode: str | Mode = "tri", *, max
         if new == colors:
             break
         colors = new
-    order = {d: i for i, d in enumerate(sorted(set(colors.values())))}
     pairs = []
     for u, v in G.edges():
-        a, b = order[colors[(u, v)]], order[colors[(v, u)]]
+        a, b = colors[(u, v)], colors[(v, u)]
         pairs.append((a, b) if a <= b else (b, a))
     return (G.number_of_nodes(), G.number_of_edges(), tuple(sorted(pairs)))
 
