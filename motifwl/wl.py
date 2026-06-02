@@ -258,6 +258,31 @@ def _wl2_signature_from_colors(colors: Dict[Tuple[int, int], int], lo: int, hi: 
     return (hi - lo, tuple(sorted(colors[(i, j)] for i in range(lo, hi) for j in range(lo, hi))))
 
 
+def canonical_wl2_signature(G: nx.Graph, *, max_iter: int = 64) -> WL2Signature:
+    """Per-graph canonical 2-WL signature via content-hash colors.
+
+    Refines one graph in isolation (O(n^3) in that graph's size only), so it
+    avoids the all-pairs-over-the-whole-union blow-up of wl2_signatures and is
+    comparable across independent calls. Equality matches wl2_equiv.
+    """
+    G = nx.convert_node_labels_to_integers(G)
+    n = G.number_of_nodes()
+    adj = [[False] * n for _ in range(n)]
+    for u, v in G.edges():
+        adj[u][v] = adj[v][u] = True
+    colors = {(i, j): _h((i == j, adj[i][j])) for i in range(n) for j in range(n)}
+    for _ in range(max_iter):
+        new = {}
+        for i in range(n):
+            for j in range(n):
+                feat = (colors[(i, j)], tuple(sorted((colors[(i, k)], colors[(k, j)]) for k in range(n))))
+                new[(i, j)] = _h(feat)
+        if new == colors:
+            break
+        colors = new
+    return (n, tuple(sorted(colors[(i, j)] for i in range(n) for j in range(n))))
+
+
 def wl2_signatures(graphs: Sequence[nx.Graph], *, max_iter: int = 32) -> List[WL2Signature]:
     """Run standard 2-WL on ordered vertex pairs over a disjoint union."""
     U, ranges = _disjoint_union_with_ranges(graphs)
