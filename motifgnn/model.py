@@ -12,7 +12,7 @@ def struct(G,mode):
   for y,w in _square_witnesses(adj,u,v,simple=mode.simple_squares):sq.append((p,idx[(u,y)],idx[(v,w)],idx[(y,w)]))
  return dict(m=m,li=li,ri=ri,tri=torch.tensor(tri,dtype=torch.long).reshape(-1,3),sq=torch.tensor(sq,dtype=torch.long).reshape(-1,4))
 def agg(src,index,dim,m,d):
- o=torch.zeros(m,d,device=src.device)
+ o=torch.zeros(m,d,device=src.device,dtype=src.dtype)
  if index.numel():o.index_add_(0,index,src)
  return o
 class Layer(nn.Module):
