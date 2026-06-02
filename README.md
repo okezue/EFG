@@ -2,6 +2,22 @@
 
 This repository accompanies the EB-1WL/EF-game manuscript and the 4-cycle edge-message-passing proof work.
 
+## Computational extensions (`results/`)
+Layered on the proofs, three computational directions (all reproducible):
+- **Exhaustive search** (`results/exhaustive_search.md`): all graphs on ≤10
+  vertices contain **no** `Δ+□₂ < Δ+□₁` witness → minimal separator is ≥11
+  vertices. Run on a 192-core server via `experiments/sweep.py` with an exact
+  O(N) canonical-signature collision search.
+- **Full mode lattice** (`experiments/lattice.py`): `base < {tri, square1,
+  square2}`, `tri ∥ square1, square2`, `tri_square1 < 2WL`, with witness sizes.
+- **Neural GNN** (`results/gnn_experiments.md`, `motifgnn/`): a PyTorch
+  edge-motif GNN. Untrained models exactly realize the discrete refinement
+  (20/20); trained models' learnability matches discrete expressivity (10/10);
+  the parity pair exposes an expressivity-vs-trainability gap (signal ~2e-9).
+- **EF-games** (`results/ef_games.md`, `efgames/`): exact Ehrenfeucht-Fraisse
+  game engine + arithmetic constraint graphs, comparing FO quantifier rank with
+  WL/edge-motif distinguishability.
+
 The completed hierarchy result is:
 
 \[
