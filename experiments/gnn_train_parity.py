@@ -4,9 +4,9 @@ from motifwl.parity import private_triangle_parity_pair
 torch.manual_seed(0)
 G0,G1=private_triangle_parity_pair(d=1)
 def train(mode,steps=300,lr=5e-3):
- m=EdgeMotifGNN(d=32,layers=4,mode=mode,out=1)
+ m=EdgeMotifGNN(d=32,layers=4,mode=mode,out=1).double()
  opt=torch.optim.Adam(m.parameters(),lr=lr);lf=nn.BCEWithLogitsLoss()
- y=torch.tensor([0.,1.])
+ y=torch.tensor([0.,1.],dtype=torch.float64)
  for _ in range(steps):
   opt.zero_grad()
   out=torch.stack([m(G0).squeeze(),m(G1).squeeze()])
