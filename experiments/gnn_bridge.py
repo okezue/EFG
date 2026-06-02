@@ -11,13 +11,15 @@ def pairs():
  g0,g1=private_triangle_parity_pair(d=1);yield "parity80 (G0 vs G1)",g0,g1
 MODES=["tri","square1","square2","tri_square1","tri_square2"]
 def main():
- print(f"{'pair':24}{'mode':14}{'discrete_sep':14}{'neural_sep':12}match")
+ print(f"{'pair':24}{'mode':14}{'discrete_sep':14}{'rel_diff':12}{'neural_sep':12}match")
  ok=tot=0
  for name,G,H in pairs():
   for m in MODES:
-   mdl=EdgeMotifGNN(d=32,layers=4,mode=m).eval()
-   with torch.no_grad():d=(mdl.embed(G)-mdl.embed(H)).abs().max().item()
-   ds=csig(G,m)!=csig(H,m);ns=d>1e-3;tot+=1;ok+=ds==ns
-   print(f"{name:24}{m:14}{str(ds):14}{str(ns):12}{'OK' if ds==ns else 'MISMATCH (d=%.2g)'%d}")
- print(f"\nneural matches discrete refinement on {ok}/{tot} (pair,mode) cases")
+   mdl=EdgeMotifGNN(d=32,layers=4,mode=m).double().eval()
+   with torch.no_grad():
+    eG,eH=mdl.embed(G),mdl.embed(H)
+    rel=((eG-eH).norm()/(eG.norm()+eH.norm()+1e-30)).item()
+   ds=csig(G,m)!=csig(H,m);ns=rel>1e-9;tot+=1;ok+=ds==ns
+   print(f"{name:24}{m:14}{str(ds):14}{rel:<12.2e}{str(ns):12}{'OK' if ds==ns else 'MISMATCH'}")
+ print(f"\nneural matches discrete refinement on {ok}/{tot} (pair,mode) cases (float64, rel threshold 1e-9)")
 if __name__=="__main__":main()
