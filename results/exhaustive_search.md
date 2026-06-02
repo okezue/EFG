@@ -18,21 +18,23 @@ smaller than the known 80-vertex parity construction in
   bucket. O(N) refinement rather than O(N²) pairwise comparison.
 
 ## Result
-Exhaustive over **all graphs on n ≤ 9 vertices**: **0 witnesses.**
+Exhaustive over **all graphs on n ≤ 10 vertices**: **0 witnesses.**
 
-| n | wall time (190 cores) | witnesses |
-|---|---|---|
-| ≤8 | ~40 s | 0 |
-| 9 | 2 m 20 s (295 MB) | 0 |
+| n | graphs | wall time (190 cores) | peak RAM | witnesses |
+|---|---|---|---|---|
+| ≤8 | 12,346 | ~40 s | — | 0 |
+| 9 | 274,668 | 2 m 20 s | 295 MB | 0 |
+| 10 | ~12 M | 1 h 37 m | 12.7 GB | 0 |
 
 Run on `tambe-server-1` (192 cores). Reproduce:
 
 ```bash
 python experiments/sweep.py --weaker tri_square2 --stronger tri_square1 \
-  --nmin 4 --nmax 9 --procs 190 --out results/n9.jsonl
+  --nmin 4 --nmax 10 --procs 190 --out results/n10.jsonl
 ```
 
 ## Conclusion
-The minimal witness for `Δ+□₂ ≺ Δ+□₁` has **at least 10 vertices**. This is
+The minimal witness for `Δ+□₂ ≺ Δ+□₁` has **at least 11 vertices**. This is
 consistent with the parity-square construction needing a genuinely large gadget;
-no small accidental separator exists.
+no small accidental separator exists. (n = 11 is ~10× more graphs and exceeds the
+single-node memory used here, so it would need a streaming/sharded driver.)
