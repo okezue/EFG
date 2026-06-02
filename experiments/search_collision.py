@@ -3,13 +3,7 @@ import argparse, json, sys
 from collections import defaultdict
 from pathlib import Path
 import networkx as nx
-from motifwl.wl import edge_motif_signatures, wl2_signatures, graph6
-
-
-def signatures(graphs, mode):
-    if mode == "2wl":
-        return wl2_signatures(graphs)
-    return edge_motif_signatures(graphs, mode)
+from motifwl.wl import canonical_edge_motif_signature as csig, graph6
 
 
 def read_g6(path):
@@ -18,7 +12,7 @@ def read_g6(path):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Collision search: weaker-mode signature buckets, then test stronger-mode split inside each bucket. O(N) not O(N^2).")
+    ap = argparse.ArgumentParser(description="Collision search via per-graph canonical signatures (no disjoint union). O(N) refinement, witnesses only inside weaker-mode buckets.")
     ap.add_argument("--graph6-file", required=True)
     ap.add_argument("--weaker", required=True)
     ap.add_argument("--stronger", required=True)
@@ -27,27 +21,23 @@ def main():
     gs = read_g6(args.graph6_file)
     if len(gs) < 2:
         return
-    wsig = signatures(gs, args.weaker)
     buckets = defaultdict(list)
-    for i, s in enumerate(wsig):
-        buckets[s].append(i)
+    for i, G in enumerate(gs):
+        buckets[csig(G, args.weaker)].append(i)
     out_path = Path(args.out); out_path.parent.mkdir(parents=True, exist_ok=True)
-    found = checked = 0
+    found = 0
     with out_path.open("w") as out:
-        for s, idx in buckets.items():
+        for idx in buckets.values():
             if len(idx) < 2:
                 continue
-            sub = [gs[i] for i in idx]
-            ssig = signatures(sub, args.stronger)
             by = defaultdict(list)
-            for k, ss in enumerate(ssig):
-                by[ss].append(idx[k])
+            for i in idx:
+                by[csig(gs[i], args.stronger)].append(i)
             if len(by) < 2:
                 continue
             reps = [v[0] for v in by.values()]
             for a in range(len(reps)):
                 for b in range(a + 1, len(reps)):
-                    checked += 1
                     G, H = gs[reps[a]], gs[reps[b]]
                     rec = {"n": G.number_of_nodes(), "m": G.number_of_edges(),
                            "weaker": args.weaker, "stronger": args.stronger,

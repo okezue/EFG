@@ -153,6 +153,35 @@ def _edge_feature(
     return tuple(feat)
 
 
+def _h(x) -> bytes:
+    import hashlib
+    return hashlib.blake2b(repr(x).encode(), digest_size=16).digest()
+
+
+def canonical_edge_motif_signature(G: nx.Graph, mode: str | Mode = "tri", *, max_iter: int = 64, simple_squares: bool = True) -> Signature:
+    """Per-graph canonical edge-motif signature using content-hash colors.
+
+    Refines G in isolation; colors are structure-only hashes, so signatures are
+    comparable across independent calls without a shared disjoint union. Equality
+    of canonical signatures is equivalent to edge_motif_equiv.
+    """
+    mode_obj = Mode.parse(mode, simple_squares=simple_squares) if isinstance(mode, str) else mode
+    G = nx.convert_node_labels_to_integers(G)
+    adj = _adjacency_sets(G); dedges = _directed_edges(G)
+    colors: Dict[DirectedEdge, bytes] = {e: b"\x00" for e in dedges}
+    for _ in range(max_iter):
+        new = {e: _h(_edge_feature(colors, adj, e, mode_obj)) for e in dedges}
+        if new == colors:
+            break
+        colors = new
+    order = {d: i for i, d in enumerate(sorted(set(colors.values())))}
+    pairs = []
+    for u, v in G.edges():
+        a, b = order[colors[(u, v)]], order[colors[(v, u)]]
+        pairs.append((a, b) if a <= b else (b, a))
+    return (G.number_of_nodes(), G.number_of_edges(), tuple(sorted(pairs)))
+
+
 def _pair_signature_from_colors(G: nx.Graph, colors: Dict[DirectedEdge, int], lo: int, hi: int) -> Signature:
     pairs: List[Tuple[int, int]] = []
     for u, v in G.edges():

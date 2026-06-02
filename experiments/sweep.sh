@@ -13,7 +13,7 @@ gen() {
   local n=$1 e=$2 f="$SHARD/n${n}_e${e}.g6"
   geng -q $GFLAGS "$n" "${e}:${e}" > "$f" 2>/dev/null || true
   [ -s "$f" ] || { rm -f "$f"; return; }
-  python "$ROOT/experiments/search_pairs.py" --source graph6 --graph6-file "$f" \
+  python "$ROOT/experiments/search_collision.py" --graph6-file "$f" \
     --weaker "$W" --stronger "$S" --out "$OUT/n${n}_e${e}.jsonl" 2>>"$OUT/log.txt"
   rm -f "$f"
 }
